@@ -1,6 +1,6 @@
 
 #include <hal/dma_types.h>
-#include "spiram.h"
+#include "esp_psram.h"
 #include <rom/cache.h>
 #include <esp_heap_caps.h>
 
@@ -29,7 +29,7 @@ class DMAVideoBuffer
 
 	void attachBuffer(int b = 0)
 	{
-		for(int i = 0; i < lines; i++) 
+		for(int i = 0; i < lines; i++)
 			for(int j = 0; j < clones; j++)
 				descriptors[i * clones + j].buffer = buffer[b][i];
 	}
@@ -56,9 +56,9 @@ class DMAVideoBuffer
 		descriptorCount = lines * clones; //assume we dont need more than 4095 bytes per line
 
 		descriptors = (dma_descriptor_t *)heap_caps_aligned_calloc(ALIGNMENT_SRAM, 1, descriptorCount * sizeof(dma_descriptor_t), MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
-		if (!descriptors) 
+		if (!descriptors)
 			return;
-		for(int i = 0; i < bufferCount; i++)		
+		for(int i = 0; i < bufferCount; i++)
 			for(int j = 0; j < lines; j++)
 				buffer[i][j] = 0;
 		for(int i = 0; i < bufferCount; i++)
@@ -69,7 +69,7 @@ class DMAVideoBuffer
 					buffer[i][y] = heap_caps_aligned_calloc(ALIGNMENT_PSRAM, 1, lineSize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 				else
 					buffer[i][y] = heap_caps_aligned_calloc(ALIGNMENT_SRAM, 1, lineSize, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA | MALLOC_CAP_8BIT);
-				if (!buffer[i][y]) 
+				if (!buffer[i][y])
 				{
 					//TODO f this
 					/*heap_caps_free(descriptors);
@@ -84,7 +84,7 @@ class DMAVideoBuffer
 				}
 			}
 		}
-		for (int i = 0; i < descriptorCount; i++) 
+		for (int i = 0; i < descriptorCount; i++)
 		{
 			descriptors[i].dw0.owner = DMA_DESCRIPTOR_BUFFER_OWNER_CPU;
 			descriptors[i].dw0.suc_eof = 0;
@@ -107,7 +107,7 @@ class DMAVideoBuffer
 	{
 		if(descriptors)
 			heap_caps_free(descriptors);
-		for(int i = 0; i < bufferCount; i++)		
+		for(int i = 0; i < bufferCount; i++)
 			for(int j = 0; j < lines; j++)
 				if(buffer[i][j])
 					heap_caps_free(buffer[i][j]);
