@@ -69,7 +69,7 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 	LCD_CAM.lcd_user.lcd_reset = 1;
 	esp_rom_delay_us(100);
 
-	
+
 	//f=240000000/(n+1)
 	//n=240000000/f-1;
 	int N = round(240000000.0/(double)mode.frequency);
@@ -82,7 +82,7 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 	LCD_CAM.lcd_clock.lcd_clkm_div_a = 0;
 	LCD_CAM.lcd_clock.lcd_clkm_div_b = 0;
 	LCD_CAM.lcd_clock.lcd_clkm_div_num = N; 	// 0 => 256; 1 => 2; 14 compfy
-	LCD_CAM.lcd_clock.lcd_ck_out_edge = 0;		
+	LCD_CAM.lcd_clock.lcd_ck_out_edge = 0;
 	LCD_CAM.lcd_clock.lcd_ck_idle_edge = 0;
 	LCD_CAM.lcd_clock.lcd_clk_equ_sysclk = 1;
 
@@ -98,9 +98,9 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 	LCD_CAM.lcd_user.lcd_always_out_en = 1;
     LCD_CAM.lcd_ctrl2.lcd_hsync_idle_pol = mode.hPol ^ 1;
     LCD_CAM.lcd_ctrl2.lcd_vsync_idle_pol = mode.vPol ^ 1;
-    LCD_CAM.lcd_ctrl2.lcd_de_idle_pol = 1;	
+    LCD_CAM.lcd_ctrl2.lcd_de_idle_pol = 1;
 
-	LCD_CAM.lcd_misc.lcd_bk_en = 1;	
+	LCD_CAM.lcd_misc.lcd_bk_en = 1;
     LCD_CAM.lcd_misc.lcd_vfk_cyclelen = 0;
     LCD_CAM.lcd_misc.lcd_vbk_cyclelen = 0;
 
@@ -126,8 +126,8 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 			this->pins.g[3], this->pins.g[4], this->pins.g[5],
 			this->pins.b[3], this->pins.b[4]
 		};
-		for (int i = 0; i < bits; i++) 
-			if (pins[i] >= 0) 
+		for (int i = 0; i < bits; i++)
+			if (pins[i] >= 0)
 				attachPinToSignal(pins[i], LCD_DATA_OUT0_IDX + i);
 	}
 	else if(bits == 16)
@@ -137,14 +137,14 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 			this->pins.g[0], this->pins.g[1], this->pins.g[2], this->pins.g[3], this->pins.g[4], this->pins.g[5],
 			this->pins.b[0], this->pins.b[1], this->pins.b[2], this->pins.b[3], this->pins.b[4]
 		};
-		for (int i = 0; i < bits; i++) 
-			if (pins[i] >= 0) 
+		for (int i = 0; i < bits; i++)
+			if (pins[i] >= 0)
 				attachPinToSignal(pins[i], LCD_DATA_OUT0_IDX + i);
 	}
 	attachPinToSignal(this->pins.hSync, LCD_H_SYNC_IDX);
 	attachPinToSignal(this->pins.vSync, LCD_V_SYNC_IDX);
-  
-	gdma_channel_alloc_config_t dma_chan_config = 
+
+	gdma_channel_alloc_config_t dma_chan_config =
 	{
 		.direction = GDMA_CHANNEL_DIRECTION_TX,
 	};
@@ -152,7 +152,7 @@ bool VGA::init(const PinConfig pins, const Mode mode, int bits)
 	gdma_new_channel(&dma_chan_config, &dmaCh);
 	dmaChannel = (int)dmaCh;
 	gdma_connect(dmaCh, GDMA_MAKE_TRIGGER(GDMA_TRIG_PERIPH_LCD, 0));
-	gdma_transfer_ability_t ability = 
+	gdma_transfer_ability_t ability =
 	{
         .sram_trans_align = 4,
         .psram_trans_align = 64,
@@ -169,7 +169,7 @@ bool VGA::start()
 	//TODO check start
 	//very delicate... dma might be late for peripheral
 	gdma_reset((gdma_channel_handle_t)dmaChannel);
-    esp_rom_delay_us(1);	
+    esp_rom_delay_us(1);
     LCD_CAM.lcd_user.lcd_start = 0;
     LCD_CAM.lcd_user.lcd_update = 1;
 	esp_rom_delay_us(1);
@@ -187,7 +187,7 @@ bool VGA::show()
 {
 	//TODO check start
 	dmaBuffer->flush(backBuffer);
-	if(bufferCount <= 1) 
+	if(bufferCount <= 1)
 		return true;
 	dmaBuffer->attachBuffer(backBuffer);
 	backBuffer = (backBuffer + 1) % bufferCount;
@@ -233,10 +233,10 @@ void VGA::dotdit(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 	if(bits == 16)
 	{
 		r = min((rand() & 7) | (r & 0xf8), 255);
-		g = min((rand() & 3) | (g & 0xfc), 255); 
+		g = min((rand() & 3) | (g & 0xfc), 255);
 		b = min((rand() & 7) | (b & 0xf8), 255);
 		dmaBuffer->getLineAddr16(y, backBuffer)[x] = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-	}	
+	}
 }
 
 int VGA::rgb(uint8_t r, uint8_t g, uint8_t b)
@@ -245,7 +245,7 @@ int VGA::rgb(uint8_t r, uint8_t g, uint8_t b)
 		return (r >> 5) | ((g >> 5) << 3) | (b & 0b11000000);
 	else if(bits == 16)
 		return (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-
+	return 0;
 }
 
 void VGA::clear(int rgb)
